@@ -1062,6 +1062,5 @@ void Solum::connectPortChanged(QLineEdit* portEdit, QPushButton* connectButton)
             if (portEdit->isVisible())
                 QToolTip::showText(pos, portError_, portEdit);
         }
-
     });
 }
