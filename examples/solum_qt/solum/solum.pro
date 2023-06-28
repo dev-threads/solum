@@ -20,3 +20,5 @@ FORMS += solumqt.ui
 
 RESOURCES += \
     solum.qrc
+
+win32: LIBS += -LD:/Libs/Clarius/SolumDLL
