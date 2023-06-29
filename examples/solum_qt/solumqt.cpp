@@ -14,6 +14,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
 {
     _me = this;
     ui_->setupUi(this);
+    ui_->status->viewport()->setAutoFillBackground(false);
     setWindowIcon(QIcon(":/res/logo.png"));
     image_ = new UltrasoundImage(this);
     spectrum_ = new Spectrum(this);
