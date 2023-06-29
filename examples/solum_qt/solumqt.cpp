@@ -54,7 +54,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
         // check for errors
         if (doc.isNull())
         {
-            ui_->status->showMessage(QStringLiteral("Error retrieving certificates"));
+            addStatus(tr("Error retrieving certificates"));
             return;
         }
 
@@ -78,7 +78,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
                 }
             }
 
-            ui_->status->showMessage(QStringLiteral("Found %1 valid OEM probes").arg(certified_.size()));
+            addStatus(tr("Found %1 valid OEM probes").arg(certified_.size()));
         }
     });
 
@@ -144,7 +144,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
     // power status sent
     connect(&ble_, &Ble::powered, [this](bool en)
     {
-        ui_->status->showMessage(QStringLiteral("Powered: %1").arg(en ? QStringLiteral("On") : QStringLiteral("Off")));
+        addStatus(tr("Powered: %1").arg(en ? tr("On") : tr("Off")));
     });
 
     // wifi info sent
@@ -169,7 +169,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
         ui_->ip->setText(ip);
         ui_->port->setText(port);
         if (!ip.isEmpty() && !port.isEmpty())
-            ui_->status->showMessage(QStringLiteral("Wi-Fi: %1 (%2) [SSID: %3]").arg(ip).arg(port).arg(ssid));
+            addStatus(tr("Wi-Fi: %1 (%2) [SSID: %3]").arg(ip).arg(port).arg(ssid));
     });
 }
 
@@ -364,18 +364,25 @@ bool Solum::event(QEvent *event)
     }
     else if (event->type() == ERROR_EVENT)
     {
-        setError((static_cast<event::Error*>(event))->error_);
+        addError((static_cast<event::Error*>(event))->error_);
         return true;
     }
 
     return QMainWindow::event(event);
 }
 
+/// called when reporting the result of a user action
+/// @param[in] status the status message
+void Solum::addStatus(const QString &status)
+{
+    ui_->status->showMessage(status);
+}
+
 /// called when the api returns an error
 /// @param[in] err the error message
-void Solum::setError(const QString& err)
+void Solum::addError(const QString &err)
 {
-    ui_->status->showMessage(QStringLiteral("Error: %1").arg(err));
+    addStatus(tr("Error: %1").arg(err));
 }
 
 /// called when there's a new connection event
@@ -388,7 +395,7 @@ void Solum::setConnected(CusConnection res, int port, const QString& msg)
     {
         timer_.start(1000);
         connected_ = true;
-        ui_->status->showMessage(QStringLiteral("Connected on port: %1").arg(port));
+        addStatus(tr("Connected on port: %1").arg(port));
         ui_->connect->setText("Disconnect");
         ui_->update->setEnabled(true);
         ui_->load->setEnabled(true);
@@ -402,7 +409,7 @@ void Solum::setConnected(CusConnection res, int port, const QString& msg)
     {
         timer_.stop();
         connected_ = false;
-        ui_->status->showMessage(QStringLiteral("Disconnected"));
+        addStatus(tr("Disconnected"));
         ui_->connect->setText(QStringLiteral("Connect"));
         ui_->cert->clear();
         ui_->freeze->setEnabled(false);
@@ -412,9 +419,9 @@ void Solum::setConnected(CusConnection res, int port, const QString& msg)
         imagingState(ImagingNotReady, false);
     }
     else if (res == ConnectionFailed || res == ConnectionError)
-        ui_->status->showMessage(QStringLiteral("Error connecting: %1").arg(msg));
+        addStatus(tr("Error connecting: %1").arg(msg));
     else if (res == SwUpdateRequired)
-        ui_->status->showMessage(QStringLiteral("Software update required prior to imaging"));
+        addStatus(tr("Software update required prior to imaging"));
 }
 
 /// called when a new certification message has been sent
@@ -435,13 +442,13 @@ void Solum::certification(int daysValid)
 void Solum::poweringDown(CusPowerDown res, int tm)
 {
     if (res == Idle)
-        ui_->status->showMessage(QStringLiteral("Idle power down in: %1s").arg(tm));
+        addStatus(tr("Idle power down in: %1s").arg(tm));
     else if (res == TooHot)
-        ui_->status->showMessage(QStringLiteral("Heating power down in: %1s").arg(tm));
+        addStatus(tr("Heating power down in: %1s").arg(tm));
     else if (res == LowBattery)
-        ui_->status->showMessage(QStringLiteral("Battery low power down in: %1s").arg(tm));
+        addStatus(tr("Battery low power down in: %1s").arg(tm));
     else if (res == ButtonOff)
-        ui_->status->showMessage(QStringLiteral("Button press power down in: %1s").arg(tm));
+        addStatus(tr("Button press power down in: %1s").arg(tm));
 }
 
 /// called when there's a software update notification
@@ -449,11 +456,11 @@ void Solum::poweringDown(CusPowerDown res, int tm)
 void Solum::softwareUpdate(CusSwUpdate res)
 {
     if (res == SwUpdateSuccess)
-        ui_->status->showMessage(QStringLiteral("Successfully updated software"));
+        addStatus(tr("Successfully updated software"));
     else if (res == SwUpdateCurrent)
-        ui_->status->showMessage(QStringLiteral("Software already up to date"));
+        addStatus(tr("Software already up to date"));
     else
-        ui_->status->showMessage(QStringLiteral("Software not updated: %1").arg(res));
+        addStatus(tr("Software not updated: %1").arg(res));
 }
 
 /// called when the imaging state changes
@@ -480,7 +487,7 @@ void Solum::imagingState(CusImagingState state, bool imaging)
     ui_->tgcbottom->setEnabled((ready && !ag) ? true : false);
     ui_->modes->setEnabled(ready ? true : false);
 
-    ui_->status->showMessage(QStringLiteral("Image: %1").arg(imaging ? QStringLiteral("Running") : QStringLiteral("Frozen")));
+    addStatus(tr("Image: %1").arg(imaging ? tr("Running") : tr("Frozen")));
     if (ready)
     {
         ui_->freeze->setText(imaging ? QStringLiteral("Stop") : QStringLiteral("Run"));
@@ -490,7 +497,7 @@ void Solum::imagingState(CusImagingState state, bool imaging)
         image_->checkGate();
     }
     else if (state == CertExpired)
-        ui_->status->showMessage(QStringLiteral("Certificate needs updating prior to imaging"));
+        addStatus(tr("Certificate needs updating prior to imaging"));
 }
 
 /// called when there is a button press on the ultrasound
@@ -498,7 +505,7 @@ void Solum::imagingState(CusImagingState state, bool imaging)
 /// @param[in] clicks # of clicks used
 void Solum::onButton(CusButton btn, int clicks)
 {
-    ui_->status->showMessage(QStringLiteral("Button %1 Pressed, %2 Clicks").arg((btn == ButtonDown) ? QStringLiteral("Down") : QStringLiteral("Up")).arg(clicks));
+    addStatus(tr("Button %1 Pressed, %2 Clicks").arg((btn == ButtonDown) ? tr("Down") : tr("Up")).arg(clicks));
 }
 
 /// called when the download progress changes
@@ -562,9 +569,9 @@ void Solum::onConnect()
     if (!connected_)
     {
         if (solumConnect(ui_->ip->text().toStdString().c_str(), ui_->port->text().toInt()) < 0)
-            ui_->status->showMessage(QStringLiteral("Connection failed"));
+            addStatus(tr("Connection failed"));
         else
-            ui_->status->showMessage(QStringLiteral("Trying connection"));
+            addStatus(tr("Trying connection"));
 
         settings_->setValue("ip", ui_->ip->text());
         settings_->setValue("port", ui_->port->text());
@@ -572,7 +579,7 @@ void Solum::onConnect()
     else
     {
         if (solumDisconnect() < 0)
-            ui_->status->showMessage(QStringLiteral("Disconnect failed"));
+            addStatus(tr("Disconnect failed"));
     }
 }
 
@@ -583,7 +590,7 @@ void Solum::onFreeze()
         return;
 
     if (solumRun(imaging_ ? 0 : 1) < 0)
-        ui_->status->showMessage(QStringLiteral("Error requesting imaging run/stop"));
+        addStatus(tr("Error requesting imaging run/stop"));
     else
     {
         imagingState(ImagingReady, !imaging_);
@@ -609,7 +616,7 @@ void Solum::onUpdate()
         {
             QApplication::postEvent(_me, new event::Progress(progress));
         }, 0) < 0)
-        ui_->status->showMessage(QStringLiteral("Error requesting software update"));
+        addStatus(tr("Error requesting software update"));
 }
 
 /// called to load a certificate
@@ -636,7 +643,7 @@ void Solum::onLoad()
         return;
 
     if (solumLoadApplication(ui_->probes->currentText().toStdString().c_str(), ui_->workflows->currentText().toStdString().c_str()) < 0)
-        ui_->status->showMessage(QStringLiteral("Error requesting application load"));
+        addStatus(tr("Error requesting application load"));
     // update depth range on a successful load
     else
     {
@@ -815,7 +822,7 @@ void Solum::onMode(int mode)
 {
     auto m = static_cast<CusMode>(mode);
     if (solumSetMode(m) < 0)
-        ui_->status->showMessage(QStringLiteral("Error setting imaging mode"));
+        addStatus(tr("Error setting imaging mode"));
     else
     {
         spectrum_->setVisible(m == MMode || m == PwMode);

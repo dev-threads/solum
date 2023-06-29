@@ -231,7 +231,8 @@ private:
     void imagingState(CusImagingState state, bool imaging);
     void onButton(CusButton btn, int clicks);
     void setProgress(int progress);
-    void setError(const QString& err);
+    void addStatus(const QString &status);
+    void addError(const QString &err);
     void getParams();
     void updateVelocity(CusMode mode);
 
