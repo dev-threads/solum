@@ -61,7 +61,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
         // check for errors
         if (doc.isNull())
         {
-            addStatus(tr("Error retrieving certificates"));
+            addStatus(tr("(Cloud) Error retrieving certificates"));
             return;
         }
 
@@ -85,7 +85,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
                 }
             }
 
-            addStatus(tr("Found %1 valid OEM probes").arg(certified_.size()));
+            addStatus(tr("(Cloud) Found %1 valid OEM probes").arg(certified_.size()));
         }
     });
 
@@ -236,7 +236,14 @@ void Solum::closeEvent(QCloseEvent*)
 void Solum::onRetrieve()
 {
     auto token = ui_.token->text();
-    if (!token.isEmpty())
+    if (token.isEmpty())
+        return;
+
+    addStatus("(Cloud) Retrieving probe credentials...");
+
+    // Defer the actual retrieval, so that we immediately return and refresh
+    // the UI.
+    QTimer::singleShot(1, [=] ()
     {
         settings_->setValue("token", token);
         QNetworkRequest request(QUrl("https://cloud.clarius.com/api/public/v0/devices/oem/?limit=300&format=json"));
@@ -244,7 +251,7 @@ void Solum::onRetrieve()
         QByteArray auth(QString("OEM-API-Key %1").arg(token).toUtf8());
         request.setRawHeader("Authorization", auth);
         cloud_.get(request);
-    }
+    });
 }
 
 /// initiates ble search
