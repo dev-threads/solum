@@ -2,11 +2,8 @@
 
 #include "ble.h"
 #include <solum_def.h>
-
-namespace Ui
-{
-    class Solum;
-}
+#include "ui_solumqt.h"
+#include <solum_def.h>
 
 class UltrasoundImage;
 class Spectrum;
@@ -271,7 +268,7 @@ public slots:
 private:
     bool connected_;                ///< connection state
     bool imaging_;                  ///< imaging state
-    Ui::Solum *ui_;                 ///< ui controls, etc.
+    Ui::Solum ui_;                  ///< ui controls, etc.
     UltrasoundImage* image_;        ///< image display
     Spectrum* spectrum_;            ///< spectrum display
     ProbeRender* render_;           ///< probe renderer
