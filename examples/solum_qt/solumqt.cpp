@@ -13,6 +13,12 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
 {
     _me = this;
     ui_.setupUi(this);
+
+    // Job button labels
+    ui_.retrieve->setLabels(tr("Retrieve"), tr("Retrieving..."));
+    ui_.blesearch->setLabels(tr("Search"), tr("Searching..."));
+    ui_.bleconnect->setLabels(tr("Connect"), tr("Connecting..."));
+
     ui_.status->viewport()->setAutoFillBackground(false);
     setWindowIcon(QIcon(":/res/logo.png"));
     image_ = new UltrasoundImage(this);
@@ -79,6 +85,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
             }
 
             addStatus(tr("Found %1 valid OEM probes").arg(certified_.size()));
+            ui_.retrieve->ready();
         }
     });
 
@@ -116,6 +123,12 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
         }
     });
 
+    const auto bleReadyCheck = [this]()
+    {
+        if(ui_.wifi->isEnabled() && ui_.ring->isEnabled())
+            ui_.bleconnect->ready();
+    };
+
     // connect ble device list
     connect(&ble_, &Ble::devices, [this](const QStringList& devs)
     {
@@ -124,21 +137,24 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
             ui_.bleprobes->addItem(d);
         if (ui_.bleprobes->count())
             ui_.bleprobes->setCurrentIndex(0);
+        ui_.blesearch->ready();
     });
 
     // power service ready
-    connect(&ble_, &Ble::powerReady, [this](bool en)
+    connect(&ble_, &Ble::powerReady, [this, bleReadyCheck](bool en)
     {
         ui_.poweron->setEnabled(en);
         ui_.poweroff->setEnabled(en);
         ui_.ring->setEnabled(en);
+        bleReadyCheck();
     });
 
     // wifi service ready
-    connect(&ble_, &Ble::wifiReady, [this](bool en)
+    connect(&ble_, &Ble::wifiReady, [this, bleReadyCheck](bool en)
     {
         ui_.wifi->setEnabled(en);
         ui_.ap->setEnabled(en);
+        bleReadyCheck();
     });
 
     // power status sent
