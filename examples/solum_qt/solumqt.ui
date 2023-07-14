@@ -326,6 +326,9 @@ After clicking the button, wait for the SSID to be published via BLE, then conne
         </item>
         <item row="1" column="0" colspan="4">
          <widget class="QGroupBox" name="tcp">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>

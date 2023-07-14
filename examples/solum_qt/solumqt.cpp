@@ -91,6 +91,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
 
             addStatus(tr("(Cloud) Found %1 valid OEM probes").arg(certified_.size()));
             ui_.retrieve->ready();
+            ui_.tcp->setEnabled(true);
         }
     });
 
