@@ -24,6 +24,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
     });
 
     ui_.status->viewport()->setAutoFillBackground(false);
+    ui_.progress->hide();
     setWindowIcon(QIcon(":/res/logo.png"));
     image_ = new UltrasoundImage(this);
     spectrum_ = new Spectrum(this);
@@ -557,6 +558,7 @@ void Solum::onButton(CusButton btn, int clicks)
 /// @param[in] progress the current progress
 void Solum::setProgress(int progress)
 {
+    ui_.progress->show();
     ui_.progress->setValue(progress);
 }
 
