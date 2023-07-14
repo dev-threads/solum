@@ -13,7 +13,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
     ui_.setupUi(this);
 
     // Job button labels
-    ui_.retrieve->setLabels(tr("Retrieve"), tr("Retrieving..."));
+    ui_.retrieve->setLabels(tr("Retrieve from Clarius cloud"), tr("Retrieving..."));
     ui_.blesearch->setLabels(tr("Search"), tr("Searching..."));
     ui_.bleconnect->setLabels(tr("Connect"), tr("Connecting..."));
 
