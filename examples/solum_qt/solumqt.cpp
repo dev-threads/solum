@@ -3,8 +3,6 @@
 #include "3d.h"
 #include <solum.h>
 
-#define IMU_TAB     4
-
 static Solum* _me;
 
 /// default constructor
@@ -44,7 +42,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), connected_(false), imaging_
     ui_.opacity->setVisible(false);
     ui_.rfzoom->setVisible(false);
     ui_.rfStream->setVisible(false);
-    ui_._tabs->setTabEnabled(IMU_TAB, false);
+    ui_._tabs->setTabEnabled(ui_._tabs->indexOf(ui_._3d), false);
 
     settings_ = std::make_unique<QSettings>(QStringLiteral("settings.ini"), QSettings::IniFormat);
     ui_.token->setText(settings_->value("token").toString());
@@ -796,7 +794,7 @@ void Solum::onAutoFocus(int state)
 /// @param[in] state checkbox state
 void Solum::onImu(int state)
 {
-    ui_._tabs->setTabEnabled(IMU_TAB, (state == Qt::Checked));
+    ui_._tabs->setTabEnabled(ui_._tabs->indexOf(ui_._3d), (state == Qt::Checked));
     solumSetParam(ImuStreaming, (state == Qt::Checked) ? 1 : 0);
 }
 
