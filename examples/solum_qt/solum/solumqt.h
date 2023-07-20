@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ble.h"
-#include <solum_def.h>
+#include "openigtlink.h"
 #include "ui_solumqt.h"
 #include "image.h"
 #include <solum_def.h>
@@ -275,6 +275,7 @@ public slots:
     void tgcTop(int);
     void tgcMid(int);
     void tgcBottom(int);
+    void onIGTLServe();
 
 private:
     QString bleConnectedProbe_;     ///< serial of the probe connected via BLE
@@ -296,4 +297,7 @@ private:
     std::unique_ptr<QSettings> settings_;   ///< persistent settings
     QIntValidator* portValidator_;  ///< keeps port fields between 1 and 65535
     QString portError_;             ///< error message for port validation
+
+    std::optional<uint16_t> igtlport_; ///< OpenIGTLink port
+    SolumIGTL igtl_;                   ///< OpenIGTLink module
 };
