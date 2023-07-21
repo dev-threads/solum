@@ -12,6 +12,12 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
     _me = this;
     ui_.setupUi(this);
 
+    connect(ui_.igtlnode, &QLineEdit::textChanged, [this](auto& text)
+    {
+        igtl_.setNodeName(text);
+        settings_->setValue("OpenIGTLink/node", text);
+    });
+
     // Job button labels
     ui_.retrieve->setLabels(tr("Retrieve from Clarius cloud"), tr("Retrieving..."));
     ui_.blesearch->setLabels(tr("Search"), tr("Searching..."));
@@ -67,6 +73,8 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
     auto igtlport = settings_->value("OpenIGTLink/port").toString();
     if (!igtlport.isEmpty())
         ui_.igtlport->setText(igtlport);
+    auto igtlnode = settings_->value("OpenIGTLink/node").toString();
+    ui_.igtlnode->setText(igtlnode.isEmpty() ? "Ultrasound" : igtlnode);
 
     ui_.certtable->setColumnCount(4);
     ui_.certtable->setHorizontalHeaderLabels({tr("Serial number"),
