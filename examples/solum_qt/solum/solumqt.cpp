@@ -684,6 +684,7 @@ void Solum::setProgress(int progress)
 /// @param[in] evt the processed image event
 void Solum::newProcessedImage(const event::ProcessedImage& evt)
 {
+    igtl_.sendImage(evt.img_, evt.micronsPerPixel_);
     image_->loadImage(evt.img_);
     if (!evt.imu_.isNull())
         render_->update(evt.imu_);
