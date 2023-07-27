@@ -36,6 +36,41 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <widget class="QWidget" name="_certs">
+       <attribute name="title">
+        <string>Certificates</string>
+       </attribute>
+       <layout class="QVBoxLayout">
+        <item>
+         <widget class="QTableWidget" name="certtable">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
+          <attribute name="horizontalHeaderMinimumSectionSize">
+           <number>0</number>
+          </attribute>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>0</number>
+          </attribute>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="_ble">
        <attribute name="title">
         <string>BLE</string>
