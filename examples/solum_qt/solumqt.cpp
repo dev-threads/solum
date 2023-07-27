@@ -665,6 +665,7 @@ void Solum::reflectCertification()
 {
     ui_.certtable->setRowCount(int(certified_.size()));
     int row = 0;
+    bool tcpMakesSense = false;
     for (const auto& probe : certified_)
     {
         QSslCertificate cert(probe.second.toLatin1());
@@ -673,6 +674,7 @@ void Solum::reflectCertification()
         auto expiry = cert.expiryDate().toString(Qt::RFC2822Date);
         auto now = QDateTime::currentDateTime();
         auto valid = ((cert.effectiveDate() <= now) && (cert.expiryDate() >= now));
+        tcpMakesSense |= valid;
 
         auto itemSerial = new QTableWidgetItem(probe.first);
         auto itemIssued = new QTableWidgetItem(issued);
@@ -686,6 +688,7 @@ void Solum::reflectCertification()
         ui_.certtable->setItem(row, 3, itemValid);
         row++;
     }
+    ui_._tabs->setTabEnabled(ui_._tabs->indexOf(ui_._tcp), tcpMakesSense);
 }
 
 /// called when the connect/disconnect button is clicked
