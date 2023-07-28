@@ -199,7 +199,13 @@ namespace event
     };
 }
 
-using Probes = std::map<QString,QString>;
+struct ProbeData
+{
+    QString crt;
+    QString model;
+};
+
+using Probes = std::map<QString, ProbeData>;
 
 /// solum gui application
 class Solum : public QMainWindow
@@ -215,7 +221,6 @@ protected:
     virtual void closeEvent(QCloseEvent *event) override;
 
 private:
-    void loadProbes(const QStringList& probes);
     void loadApplications(const QStringList& probes);
     void newProcessedImage(const void* img, int w, int h, int bpp, int sz, const QQuaternion& imu);
     void newPrescanImage(const void* img, int w, int h, int bpp, int sz);
