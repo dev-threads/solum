@@ -488,12 +488,16 @@ void Solum::setConnected(CusConnection res, int port, const QString& msg)
         addStatus(tr("Connected on port: %1").arg(port));
         ui_.connect->setText("Disconnect");
         ui_.update->setEnabled(true);
-        ui_.load->setEnabled(true);
+        ui_.imaging->setEnabled(true);
 
         // load the certificate if it was already retrieved from the cloud
         QString serial = ui_.bleprobes->currentText();
         if (certified_.count(serial))
             solumSetCert(certified_[serial].crt.toLatin1());
+
+        if (tcpConnectedProbe_ != serial)
+            activeProbeAndWorkflow_ = {};
+        tcpConnectedProbe_ = serial;
     }
     else if (res == ProbeDisconnected)
     {
@@ -504,7 +508,6 @@ void Solum::setConnected(CusConnection res, int port, const QString& msg)
         ui_.probeStatus->clear();
         ui_.imaging->setEnabled(false);
         ui_.update->setEnabled(false);
-        ui_.load->setEnabled(false);
         // disable controls upon disconnect
         imagingState(ImagingNotReady, false);
     }
@@ -559,7 +562,6 @@ void Solum::softwareUpdate(CusSwUpdate res)
 void Solum::imagingState(CusImagingState state, bool imaging)
 {
     bool ready = (state != ImagingNotReady);
-    ui_.imaging->setEnabled(ready ? true : false);
     ui_.autogain->setEnabled(ready ? true : false);
     ui_.autofocus->setEnabled(ready ? true : false);
     ui_.decdepth->setEnabled(ready ? true : false);
@@ -578,9 +580,9 @@ void Solum::imagingState(CusImagingState state, bool imaging)
     ui_.modes->setEnabled(ready ? true : false);
 
     if (!imaging || !connected_)
-        ui_.imaging->setLabels(tr("Run"), tr("Starting imaging..."));
+        ui_.imaging->setLabels(tr("Start imaging with selected workflow"), tr("Starting imaging..."));
     else
-        ui_.imaging->setLabels(tr("Stop"), tr("Stopping imaging..."));
+        ui_.imaging->setLabels(tr("Stop imaging"), tr("Stopping imaging..."));
 
     if (connected_)
     {
@@ -731,8 +733,8 @@ void Solum::onConnect()
     }
 }
 
-/// handles starting and stopping imaging with the selected workflow
-void Solum::onImaging()
+/// wraps solumRun() and performs associated UI updates
+void Solum::runOrStop()
 {
     if (!connected_)
         return;
@@ -767,13 +769,26 @@ void Solum::onUpdate()
         addStatus(tr("Error requesting software update"));
 }
 
-/// initiates a workflow load
-void Solum::onLoad()
+/// handles starting and stopping imaging with the selected workflow
+void Solum::onImaging()
 {
     if (!connected_)
         return;
 
-    if (solumLoadApplication(ui_.probes->currentText().toStdString().c_str(), ui_.workflows->currentText().toStdString().c_str()) < 0)
+    // capture the currently selected one, just in case the user changes it
+    // before the timer
+    const auto probeAndWorkflow = std::make_pair(
+        ui_.probes->currentText().toStdString(),
+        ui_.workflows->currentText().toStdString()
+    );
+
+    if (imaging_ || (probeAndWorkflow == activeProbeAndWorkflow_))
+    {
+        runOrStop();
+        return;
+    }
+
+    if (solumLoadApplication(probeAndWorkflow.first.c_str(), probeAndWorkflow.second.c_str()) < 0)
         addStatus(tr("Error requesting application load"));
     // update depth range on a successful load
     else
@@ -786,6 +801,8 @@ void Solum::onLoad()
             if (solumGetRange(ImageDepth, &range) == 0)
             {
                 ui_.maxdepth->setText(QStringLiteral("Max: %1cm").arg(range.max));
+                activeProbeAndWorkflow_ = probeAndWorkflow;
+                runOrStop();
             }
         });
     }
