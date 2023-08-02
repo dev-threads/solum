@@ -467,7 +467,7 @@ After clicking the button, wait for the SSID to be published via BLE, then conne
          </widget>
         </item>
         <item row="2" column="3">
-         <widget class="QPushButton" name="freeze">
+         <widget class="QPushButton" name="imaging">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -934,7 +934,7 @@ After clicking the button, wait for the SSID to be published via BLE, then conne
   <tabstop>connect</tabstop>
   <tabstop>workflows</tabstop>
   <tabstop>load</tabstop>
-  <tabstop>freeze</tabstop>
+  <tabstop>imaging</tabstop>
   <tabstop>update</tabstop>
   <tabstop>modes</tabstop>
   <tabstop>decdepth</tabstop>
@@ -962,10 +962,10 @@ After clicking the button, wait for the SSID to be published via BLE, then conne
    </hints>
   </connection>
   <connection>
-   <sender>freeze</sender>
+   <sender>imaging</sender>
    <signal>clicked()</signal>
    <receiver>Solum</receiver>
-   <slot>onFreeze()</slot>
+   <slot>onImaging()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>412</x>
@@ -1412,7 +1412,7 @@ After clicking the button, wait for the SSID to be published via BLE, then conne
  </connections>
  <slots>
   <slot>onConnect()</slot>
-  <slot>onFreeze()</slot>
+  <slot>onImaging()</slot>
   <slot>onLoad()</slot>
   <slot>onUpdate()</slot>
   <slot>onProbeSelected(QString)</slot>
