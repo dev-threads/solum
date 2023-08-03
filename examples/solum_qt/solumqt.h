@@ -227,6 +227,7 @@ private:
     void newSpectrumImage(const void* img, int l, int s, int bps);
     void newRfImage(const void* rf, int l, int s, int ss);
     void reflectCertification();
+    void reflectProbeModelAndWorkflows();
     void setConnected(CusConnection res, int port, const QString& msg);
     void certification(int daysValid);
     void poweringDown(CusPowerDown res, int tm);
@@ -254,7 +255,6 @@ public slots:
     void runOrStop();
     void onUpdate();
     void onImaging();
-    void onProbeSelected(const QString& probe);
     void onMode(int);
     void onZoom(int);
     void incDepth();
@@ -287,10 +287,8 @@ private:
     Ble ble_;                       ///< bluetooth module
     QStringList probesSupported_;   ///< result of solumProbes() API call
     Probes certified_;              ///< list of certified probes
+    std::string activeWorkflow_;    ///< preserves parameters across imaging runs
     std::unique_ptr<QSettings> settings_;   ///< persistent settings
     QIntValidator* portValidator_;  ///< keeps port fields between 1 and 65535
     QString portError_;             ///< error message for port validation
-
-    ///< preserves parameters across imaging runs
-    std::pair<std::string, std::string> activeProbeAndWorkflow_;
 };

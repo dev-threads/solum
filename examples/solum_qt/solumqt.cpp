@@ -53,9 +53,6 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
 
     settings_ = std::make_unique<QSettings>(QStringLiteral("settings.ini"), QSettings::IniFormat);
     ui_.token->setText(settings_->value("token").toString());
-    auto probe = settings_->value("probe").toString();
-    if (!probe.isEmpty())
-        ui_.probes->setCurrentText(probe);
     settings_->beginGroup("Probes");
     for (const auto& probe: settings_->childGroups())
     {
@@ -80,8 +77,6 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
     //
     //     https://forum.qt.io/topic/129429
     ui_.certtable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    reflectCertification();
 
     // handle the reply from the call to clarius cloud to obtain json probe information
     connect(&cloud_, &QNetworkAccessManager::finished, [this](QNetworkReply* reply)
@@ -182,6 +177,7 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
             ui_.tcpbox->setTitle(tr("Connection to %1").arg(probe));
             ui_.tcpbox->setEnabled(true);
             bleConnectedProbe_ = probe;
+            reflectProbeModelAndWorkflows();
             ui_.ip->setEnabled(false);
             ui_.ip->setText(tr("(waiting for BLE message)"));
             ui_.port->setEnabled(false);
@@ -415,7 +411,10 @@ bool Solum::event(QEvent *event)
     {
         auto evt = static_cast<event::List*>(event);
         if (evt->probes_)
+        {
             probesSupported_ = evt->list_;
+            reflectCertification();
+        }
         else
             loadApplications(evt->list_);
         return true;
@@ -504,7 +503,7 @@ void Solum::setConnected(CusConnection res, int port, const QString& msg)
             solumSetCert(certified_[bleConnectedProbe_].crt.toLatin1());
 
         if (tcpConnectedProbe_ != bleConnectedProbe_)
-            activeProbeAndWorkflow_ = {};
+            activeWorkflow_.clear();
         tcpConnectedProbe_ = bleConnectedProbe_;
     }
     else if (res == ProbeDisconnected)
@@ -681,17 +680,20 @@ void Solum::newRfImage(const void* rf, int l, int s, int ss)
 
 void Solum::reflectCertification()
 {
-    // Update probes
+    // Check for unsupported probe models
     {
-        ui_.probes->clear();
-        for (const auto& probe : certified_)
+        auto it = certified_.begin();
+        while(it != certified_.end())
         {
-            if (ui_.probes->findText(probe.second.model) == -1)
-                ui_.probes->addItem(probe.second.model);
+            if (!probesSupported_.contains(it->second.model))
+            {
+                addStatus(tr("%1: Probe model \"%2\" not supported by this version of Solum").arg(it->first).arg(it->second.model));
+                it = certified_.erase(it);
+            }
+            else
+                it++;
         }
-        if (ui_.probes->count())
-            ui_.probes->setCurrentIndex(0);
-    };
+    }
 
     ui_.certtable->setRowCount(int(certified_.size()));
     int row = 0;
@@ -719,6 +721,7 @@ void Solum::reflectCertification()
         row++;
     }
     ui_._tabs->setTabEnabled(ui_._tabs->indexOf(ui_._tcp), tcpMakesSense);
+    reflectProbeModelAndWorkflows();
 }
 
 /// called when the connect/disconnect button is clicked
@@ -782,18 +785,16 @@ void Solum::onImaging()
 
     // capture the currently selected one, just in case the user changes it
     // before the timer
-    const auto probeAndWorkflow = std::make_pair(
-        ui_.probes->currentText().toStdString(),
-        ui_.workflows->currentText().toStdString()
-    );
+    const auto probeModel = ui_.tcpprobe->text().toStdString();
+    const auto workflow = ui_.workflows->currentText().toStdString();
 
-    if (imaging_ || (probeAndWorkflow == activeProbeAndWorkflow_))
+    if (imaging_ || (workflow == activeWorkflow_))
     {
         runOrStop();
         return;
     }
 
-    if (solumLoadApplication(probeAndWorkflow.first.c_str(), probeAndWorkflow.second.c_str()) < 0)
+    if (solumLoadApplication(probeModel.c_str(), workflow.c_str()) < 0)
         addStatus(tr("Error requesting application load"));
     // update depth range on a successful load
     else
@@ -806,24 +807,26 @@ void Solum::onImaging()
             if (solumGetRange(ImageDepth, &range) == 0)
             {
                 ui_.maxdepth->setText(QStringLiteral("Max: %1cm").arg(range.max));
-                activeProbeAndWorkflow_ = probeAndWorkflow;
+                activeWorkflow_ = workflow;
                 runOrStop();
             }
         });
     }
 }
 
-/// called when user selects a new probe definition
+/// updates the probe model and workflow fields
 /// @param[in] probe the probe selected
-void Solum::onProbeSelected(const QString &probe)
+void Solum::reflectProbeModelAndWorkflows()
 {
-    if (!probe.isEmpty())
+    if (certified_.count(bleConnectedProbe_))
     {
-        solumApplications(probe.toStdString().c_str(), [](const char* list, int)
+        const auto& model = certified_[bleConnectedProbe_].model;
+        ui_.tcpprobe->setText(model);
+        ui_.tcpprobe->setEnabled(true);
+        solumApplications(model.toStdString().c_str(), [](const char* list, int)
         {
             QApplication::postEvent(_me, new event::List(list, false));
         });
-        settings_->setValue("probe", probe);
     }
 }
 
