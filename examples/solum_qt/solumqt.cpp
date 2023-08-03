@@ -23,8 +23,6 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
                      .arg(portValidator_->bottom())
                      .arg(portValidator_->top());
 
-    connectPortChanged(ui_.port, ui_.tcpconnect);
-
     // UI polish handlers
     connect(ui_.token, &QLineEdit::textChanged, [this](auto& text)
     {
@@ -55,12 +53,6 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
 
     settings_ = std::make_unique<QSettings>(QStringLiteral("settings.ini"), QSettings::IniFormat);
     ui_.token->setText(settings_->value("token").toString());
-    auto ip = settings_->value("ip").toString();
-    if (!ip.isEmpty())
-        ui_.ip->setText(ip);
-    auto port = settings_->value("port").toString();
-    if (!port.isEmpty())
-        ui_.port->setText(port);
     auto probe = settings_->value("probe").toString();
     if (!probe.isEmpty())
         ui_.probes->setCurrentText(probe);
@@ -190,11 +182,10 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
             ui_.tcpbox->setTitle(tr("Connection to %1").arg(probe));
             ui_.tcpbox->setEnabled(true);
             bleConnectedProbe_ = probe;
-        }
-        else
-        {
-            ui_.tcpbox->setTitle(tr("(connect to a probe via BLE first)"));
-            ui_.tcpbox->setEnabled(false);
+            ui_.ip->setEnabled(false);
+            ui_.ip->setText(tr("(waiting for BLE message)"));
+            ui_.port->setEnabled(false);
+            ui_.port->setText(tr("(waiting for BLE message)"));
         }
     };
 
@@ -268,10 +259,15 @@ Solum::Solum(QWidget *parent) : QMainWindow(parent), imaging_(false)
         auto ip = getField(QStringLiteral("ip4:"));
         auto port = getField(QStringLiteral("ctl:"));
         auto ssid = getField(QStringLiteral("ssid:"));
-        ui_.ip->setText(ip);
-        ui_.port->setText(port);
         if (!ip.isEmpty() && !port.isEmpty())
+        {
+            ui_.ip->setEnabled(true);
+            ui_.ip->setText(ip);
+            ui_.port->setEnabled(true);
+            ui_.port->setText(port);
+            ui_.tcpconnect->setEnabled(true);
             addStatus(tr("Wi-Fi: %1 (%2) [SSID: %3]").arg(ip).arg(port).arg(ssid));
+        }
     });
 
     imagingState(ImagingNotReady, false);
@@ -734,9 +730,6 @@ void Solum::onTcpConnect()
             addStatus(tr("Connection failed"));
         else
             addStatus(tr("Trying connection"));
-
-        settings_->setValue("ip", ui_.ip->text());
-        settings_->setValue("port", ui_.port->text());
     }
     else
     {
