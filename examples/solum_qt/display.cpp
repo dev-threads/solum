@@ -1,5 +1,5 @@
 #include "display.h"
-#include <solum/solum.h>
+#include <solum.h>
 
 /// default constructor
 /// @param[in] parent the parent object

@@ -2,7 +2,7 @@
 #include "display.h"
 #include "3d.h"
 #include "ui_solumqt.h"
-#include <solum/solum.h>
+#include <solum.h>
 
 #define IMU_TAB     4
 

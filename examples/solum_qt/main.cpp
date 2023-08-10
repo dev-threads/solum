@@ -1,7 +1,7 @@
 #include "solumqt.h"
 #include <memory>
-#include <solum/solum.h>
 #include <iostream>
+#include <solum.h>
 
 static std::unique_ptr<Solum> _solum;
 static std::vector<char> _image;

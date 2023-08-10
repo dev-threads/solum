@@ -7,7 +7,7 @@ PRECOMPILED_HEADER = pch.h
 
 # ensure to unpack the appropriate libs from the zip file into this folder
 LIBPATH = $$PWD/../../lib
-INCLUDEPATH += $$PWD/../../include
+INCLUDEPATH += $$PWD/../../include/solum
 LIBS += -L$$LIBPATH/ -lsolum
 
 SOURCES += main.cpp solumqt.cpp ble.cpp display.cpp 3d.cpp
