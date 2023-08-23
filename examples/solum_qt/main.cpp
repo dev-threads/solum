@@ -76,7 +76,9 @@ int main(int argc, char *argv[])
                 .bpp_ = nfo->bitsPerPixel,
             };
 
-            QApplication::postEvent(_solum.get(), new event::ProcessedImage(IMAGE_EVENT, solumImage, imu));
+            QApplication::postEvent(_solum.get(), new event::ProcessedImage(
+                IMAGE_EVENT, solumImage, imu, nfo->micronsPerPixel, nfo->originX, nfo->originY
+            ));
         },
         // new raw data callback
         [](const void* data, const CusRawImageInfo* nfo, int, const CusPosInfo*)
