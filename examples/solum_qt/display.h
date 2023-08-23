@@ -1,5 +1,7 @@
 #pragma once
 
+#include "image.h"
+
 /// ultrasound image display
 class UltrasoundImage : public QGraphicsView
 {
@@ -7,7 +9,7 @@ class UltrasoundImage : public QGraphicsView
 public:
     explicit UltrasoundImage(QWidget*);
 
-    void loadImage(const void* img, int w, int h, int bpp, int sz);
+    void loadImage(const SolumImage& img);
     void setDepth(double d) { depth_ = d; }
     void checkRoi();
     void checkGate();
