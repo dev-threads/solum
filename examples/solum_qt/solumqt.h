@@ -222,10 +222,10 @@ protected:
 
 private:
     void loadApplications(const QStringList& probes);
-    void newProcessedImage(const void* img, int w, int h, int bpp, int sz, const QQuaternion& imu);
-    void newPrescanImage(const void* img, int w, int h, int bpp, int sz);
-    void newSpectrumImage(const void* img, int l, int s, int bps);
-    void newRfImage(const void* rf, int l, int s, int ss);
+    void newProcessedImage(const event::Image& evt);
+    void newPrescanImage(const event::Image& evt);
+    void newSpectrumImage(const event::SpectrumImage& evt);
+    void newRfImage(const event::RfImage& evt);
     void reflectCertification();
     void reflectProbeModelAndWorkflows();
     void reflectMode(CusMode m);

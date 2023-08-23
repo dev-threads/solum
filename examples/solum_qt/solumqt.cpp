@@ -450,26 +450,22 @@ bool Solum::event(QEvent *event)
     }
     else if (event->type() == IMAGE_EVENT)
     {
-        auto evt = static_cast<event::Image*>(event);
-        newProcessedImage(evt->data_, evt->width_, evt->height_, evt->bpp_, evt->size_, evt->imu_);
+        newProcessedImage(*dynamic_cast<event::Image*>(event));
         return true;
     }
     else if (event->type() == PRESCAN_EVENT)
     {
-        auto evt = static_cast<event::Image*>(event);
-        newPrescanImage(evt->data_, evt->width_, evt->height_, evt->bpp_, evt->size_);
+        newPrescanImage(*dynamic_cast<event::Image*>(event));
         return true;
     }
     else if (event->type() == SPECTRUM_EVENT)
     {
-        auto evt = static_cast<event::SpectrumImage*>(event);
-        newSpectrumImage(evt->data_, evt->lines_, evt->samples_, evt->bps_);
+        newSpectrumImage(*dynamic_cast<event::SpectrumImage*>(event));
         return true;
     }
     else if (event->type() == RF_EVENT)
     {
-        auto evt = static_cast<event::RfImage*>(event);
-        newRfImage(evt->data_, evt->width_, evt->height_, evt->bpp_ / 8);
+        newRfImage(*dynamic_cast<event::RfImage*>(event));
         return true;
     }
     else if (event->type() == IMAGING_EVENT)
@@ -664,51 +660,36 @@ void Solum::setProgress(int progress)
 }
 
 /// called when a new image has been sent
-/// @param[in] img the image data
-/// @param[in] w width of the image
-/// @param[in] h height of the image
-/// @param[in] bpp the bits per pixel
-/// @param[in] sz size of the image in bytes
-/// @param[in] imu the imu data if valid
-void Solum::newProcessedImage(const void* img, int w, int h, int bpp, int sz, const QQuaternion& imu)
+/// @param[in] evt the processed image event
+void Solum::newProcessedImage(const event::Image& evt)
 {
-    image_->loadImage(img, w, h, bpp, sz);
-    if (!imu.isNull())
-        render_->update(imu);
+    image_->loadImage(evt.data_, evt.width_, evt.height_, evt.bpp_, evt.size_);
+    if (!evt.imu_.isNull())
+        render_->update(evt.imu_);
 }
 
 /// called when a new pre-scan image has been sent
-/// @param[in] img the image data
-/// @param[in] w width of the image
-/// @param[in] h height of the image
-/// @param[in] bpp the bits per pixel
-/// @param[in] sz size of the image in bytes
-void Solum::newPrescanImage(const void* img, int w, int h, int bpp, int sz)
+/// @param[in] evt the pre-scan image event
+void Solum::newPrescanImage(const event::Image& evt)
 {
-    if (sz == (w * h * (bpp / 8)))
-        prescan_ = QImage(reinterpret_cast<const uchar*>(img), w, h, QImage::Format_ARGB32);
+    if (evt.size_ == (evt.width_* evt.height_ * (evt.size_/ 8)))
+        prescan_ = QImage(reinterpret_cast<const uchar*>(evt.data_), evt.width_, evt.height_, QImage::Format_ARGB32);
     else
-        prescan_.loadFromData(static_cast<const uchar*>(img), sz, "JPG");
+        prescan_.loadFromData(static_cast<const uchar*>(evt.data_), evt.size_, "JPG");
 }
 
 /// called when a new spectrum image has been sent
-/// @param[in] img the image data
-/// @param[in] l # of lines
-/// @param[in] s # of samples
-/// @param[in] bps the bits per sample
-void Solum::newSpectrumImage(const void* img, int l, int s, int bps)
+/// @param[in] evt the spectrum image event
+void Solum::newSpectrumImage(const event::SpectrumImage& evt)
 {
-    spectrum_->loadImage(img, l, s, bps);
+    spectrum_->loadImage(evt.data_, evt.lines_, evt.samples_, evt.bps_);
 }
 
 /// called when new rf data has been sent
-/// @param[in] rf the rf data
-/// @param[in] l # of rf lines
-/// @param[in] s # of rf samples per line
-/// @param[in] ss sample size (should always be 2)
-void Solum::newRfImage(const void* rf, int l, int s, int ss)
+/// @param[in] evt the RF image event
+void Solum::newRfImage(const event::RfImage& evt)
 {
-    signal_->loadSignal(rf, l, s, ss);
+    signal_->loadSignal(evt.data_, evt.width_, evt.height_, evt.bpp_ / 8);
 }
 
 void Solum::reflectCertification()
