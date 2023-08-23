@@ -663,7 +663,7 @@ void Solum::setProgress(int progress)
 /// @param[in] evt the processed image event
 void Solum::newProcessedImage(const event::Image& evt)
 {
-    image_->loadImage(evt.data_, evt.width_, evt.height_, evt.bpp_, evt.size_);
+    image_->loadImage(evt.img_);
     if (!evt.imu_.isNull())
         render_->update(evt.imu_);
 }
@@ -672,10 +672,10 @@ void Solum::newProcessedImage(const event::Image& evt)
 /// @param[in] evt the pre-scan image event
 void Solum::newPrescanImage(const event::Image& evt)
 {
-    if (evt.size_ == (evt.width_* evt.height_ * (evt.size_/ 8)))
-        prescan_ = QImage(reinterpret_cast<const uchar*>(evt.data_), evt.width_, evt.height_, QImage::Format_ARGB32);
+    if (evt.img_.isRawBitmap())
+        prescan_ = QImage(reinterpret_cast<const uchar*>(evt.img_.img_.data()), evt.img_.width_, evt.img_.height_, QImage::Format_ARGB32);
     else
-        prescan_.loadFromData(static_cast<const uchar*>(evt.data_), evt.size_, "JPG");
+        prescan_.loadFromData(static_cast<const uchar*>(evt.img_.img_.data()), evt.img_.img_.size_bytes(), "JPG");
 }
 
 /// called when a new spectrum image has been sent
@@ -689,7 +689,7 @@ void Solum::newSpectrumImage(const event::SpectrumImage& evt)
 /// @param[in] evt the RF image event
 void Solum::newRfImage(const event::RfImage& evt)
 {
-    signal_->loadSignal(evt.data_, evt.width_, evt.height_, evt.bpp_ / 8);
+    signal_->loadSignal(evt.img_.img_.data(), evt.img_.width_, evt.img_.height_, evt.img_.bpp_ / 8);
 }
 
 void Solum::reflectCertification()

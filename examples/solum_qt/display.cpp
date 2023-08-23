@@ -19,25 +19,21 @@ UltrasoundImage::UltrasoundImage(QWidget* parent) : QGraphicsView(parent), depth
 }
 
 /// loads a new image from raw data
-/// @param[in] img the new image data
-/// @param[in] w the image width
-/// @param[in] h the image height
-/// @param[in] bpp bits per pixel
-/// @param[in] sz size of image in bytes
-void UltrasoundImage::loadImage(const void* img, int w, int h, int bpp, int sz)
+/// @param[in] imgNew the new image
+void UltrasoundImage::loadImage(const SolumImage& imgNew)
 {
     // check for size match
-    if (image_.width() != w || image_.height() != h)
+    if (image_.width() != imgNew.width_ || image_.height() != imgNew.height_)
         return;
 
     // set the image data
     lock_.lock();
     // check that the size matches the dimensions (uncompressed)
-    if (sz == (w * h * (bpp / 8)))
-        memcpy(image_.bits(), img, w * h * (bpp / 8));
+    if (imgNew.isRawBitmap())
+        memcpy(image_.bits(), imgNew.img_.data(), imgNew.img_.size_bytes());
     // try to load jpeg
     else
-        image_.loadFromData(static_cast<const uchar*>(img), sz, "JPG");
+        image_.loadFromData(imgNew.img_.data(), imgNew.img_.size_bytes(), "JPG");
     lock_.unlock();
 
     // redraw
